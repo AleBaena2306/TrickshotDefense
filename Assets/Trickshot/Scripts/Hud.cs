@@ -64,6 +64,7 @@ namespace TrickshotDefense
             Ui.Place(pauseBtn.image.rectTransform, 1f, 1f, new Vector2(96, 96), new Vector2(-24, -20));
             speedBtn = Ui.Button(root, "x1", Ui.PanelLight, () => battle?.ToggleSpeed(), "fast", 44);
             Ui.Place(speedBtn.image.rectTransform, 1f, 1f, new Vector2(170, 96), new Vector2(-136, -20));
+            Ui.Stretch(speedBtn.label.rectTransform, 52, 0, 0, 0);
         }
 
         private void BuildStart()
@@ -299,16 +300,16 @@ namespace TrickshotDefense
             if (battle == null || battle.Over || overlay != null) return;
             battle.SetPaused(true);
             var o = OpenOverlay();
-            var p = Panel(o, new Vector2(760, 640));
+            var p = Panel(o, new Vector2(760, 760));
             Ui.LabelIn(p, "PAUSED", 96, Ui.White, 0.5f, 1f, new Vector2(600, 110), new Vector2(0, -40), true);
             var resume = Ui.Button(p, "RESUME", Ui.Yellow, ClosePause, "play", 56);
             Ui.Place(resume.image.rectTransform, 0.5f, 1f, new Vector2(520, 120), new Vector2(0, -170));
             var restart = Ui.Button(p, "RESTART", Ui.PanelLight, () => { CloseOverlay(); game.Restart(); }, "back", 46);
-            Ui.Place(restart.image.rectTransform, 0.5f, 1f, new Vector2(520, 100), new Vector2(0, -310));
+            Ui.Place(restart.image.rectTransform, 0.5f, 1f, new Vector2(520, 100), new Vector2(0, -312));
             var menu = Ui.Button(p, "MENU", Ui.PanelLight, () => { CloseOverlay(); game.Quit(); }, "home", 46);
-            Ui.Place(menu.image.rectTransform, 0.5f, 1f, new Vector2(520, 100), new Vector2(0, -430));
-            Toggle(p, "music", game.Save.music, on => game.SetMusic(on), new Vector2(-70, 40));
-            Toggle(p, "sound", game.Save.sfx, on => game.SetSfx(on), new Vector2(70, 40));
+            Ui.Place(menu.image.rectTransform, 0.5f, 1f, new Vector2(520, 100), new Vector2(0, -432));
+            Toggle(p, "music", game.Save.music, on => game.SetMusic(on), new Vector2(-75, 44));
+            Toggle(p, "sound", game.Save.sfx, on => game.SetSfx(on), new Vector2(75, 44));
             KovusPride.Publishing.StorePlatform.GameplayStop();
         }
 

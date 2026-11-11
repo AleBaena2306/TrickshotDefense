@@ -258,7 +258,8 @@ namespace TrickshotDefense
             if (!string.IsNullOrEmpty(label))
             {
                 b.label = Label(content, label, fontSize, ink);
-                Stretch(b.label.rectTransform, icon != null ? fontSize * 1.25f : 0, 0, 0, 0);
+                float pad = icon != null ? fontSize * 1.25f : 0f;
+                Stretch(b.label.rectTransform, pad, 0, pad, 0);
             }
             if (icon != null)
             {

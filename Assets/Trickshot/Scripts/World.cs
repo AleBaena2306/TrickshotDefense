@@ -151,7 +151,7 @@ namespace TrickshotDefense
             Models.TintAll(back.GetComponentsInChildren<Renderer>(), Ui.Navy);
             var f = Models.Spawn("prim_cube", root);
             fill = f.transform;
-            fill.localPosition = new Vector3(0f, 0f, 0.03f);
+            fill.localPosition = new Vector3(0f, 0f, -0.04f);
             fill.localScale = new Vector3(width, 0.1f, 0.05f);
             fillRenderers = f.GetComponentsInChildren<Renderer>();
             Models.TintAll(fillRenderers, Ui.Green);
@@ -168,7 +168,7 @@ namespace TrickshotDefense
             root.gameObject.SetActive(true);
             shown = Mathf.MoveTowards(shown, ratio, Time.deltaTime * 2.5f);
             fill.localScale = new Vector3(width * ratio, 0.1f, 0.05f);
-            fill.localPosition = new Vector3(-(width * (1f - ratio)) * 0.5f, 0f, 0.03f);
+            fill.localPosition = new Vector3(-(width * (1f - ratio)) * 0.5f, 0f, -0.04f);
             Models.TintAll(fillRenderers, ratio > 0.5f ? Ui.Green : ratio > 0.25f ? Ui.Yellow : Ui.Red);
             if (cam != null) root.rotation = cam.transform.rotation;
         }
