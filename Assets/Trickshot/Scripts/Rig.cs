@@ -94,12 +94,14 @@ namespace TrickshotDefense
         public readonly Transform model;
         private readonly Dictionary<string, Part> parts = new Dictionary<string, Part>();
         private readonly Vector3 modelBaseScale;
+        private readonly Quaternion modelBaseRot;
 
         public Rig(GameObject holderGo)
         {
             holder = holderGo.transform;
             model = holder.Find("Model");
             modelBaseScale = model != null ? model.localScale : Vector3.one;
+            modelBaseRot = model != null ? model.localRotation : Quaternion.identity;
             Quaternion inv = Quaternion.Inverse(holder.rotation);
             foreach (var t in holderGo.GetComponentsInChildren<Transform>(true))
             {
@@ -129,6 +131,16 @@ namespace TrickshotDefense
         {
             foreach (var kv in parts) if (kv.Value.t != null) kv.Value.t.localRotation = kv.Value.baseLocal;
             Offset(0f, 1f);
+            Tilt(0f, 0f, 0f);
+        }
+
+        // Inclina el modelo entero (todas las piezas cuelgan de la raíz, así que los giros del cuerpo van aquí).
+        // twist: alrededor de Y (arriba); lean: alrededor de X (derecha, hacia delante = positivo); roll: alrededor de Z
+        public void Tilt(float twist, float lean, float roll)
+        {
+            if (model == null) return;
+            model.localRotation = Quaternion.AngleAxis(twist, Vector3.up) * Quaternion.AngleAxis(lean, Vector3.right)
+                                  * Quaternion.AngleAxis(roll, Vector3.forward) * modelBaseRot;
         }
 
         // Salto (altura) y aplastamiento (escala vertical) de todo el modelo
@@ -154,9 +166,8 @@ namespace TrickshotDefense
         public void AnimateAthlete(Sport sport, float time, float attack, float celebrate)
         {
             float breathe = Mathf.Sin(time * 2.2f);
-            Rot("Torso", Vector3.forward, breathe * 1.5f);
             Rot("Head", Vector3.right, breathe * 2f);
-            float armL = breathe * 4f, armR = -breathe * 4f, legR = 0f, twist = 0f, lean = 0f, hop = 0f, squash = 1f;
+            float armL = breathe * 4f, armR = -breathe * 4f, legR = 0f, twist = 0f, lean = 0f, hop = 0f, squash = 1f + breathe * 0.012f;
 
             if (attack >= 0f)
             {
@@ -193,9 +204,7 @@ namespace TrickshotDefense
             Rot("ArmL", Vector3.right, armL);
             Rot("ArmR", Vector3.right, armR);
             Rot("LegR", Vector3.right, legR);
-            if (twist != 0f || lean != 0f)
-                Rot("Torso", Vector3.up, twist);
-            if (lean != 0f) Rot("Torso", Vector3.right, lean);
+            Tilt(twist, lean, 0f);
             Offset(hop, squash);
         }
 
@@ -203,35 +212,36 @@ namespace TrickshotDefense
         public void AnimateRobot(EnemyKind kind, float time, float hit)
         {
             float squash = 1f - 0.16f * hit;
-            float y = 0f;
+            float y = 0f, lean = 0f, roll = 0f;
             switch (kind)
             {
                 case EnemyKind.Basic:
-                    Rot("Body", Vector3.forward, Mathf.Sin(time * 7f) * 5f);
+                    roll = Mathf.Sin(time * 7f) * 4f;
                     Rot("ArmL", Vector3.right, Mathf.Sin(time * 7f) * 28f);
                     Rot("ArmR", Vector3.right, -Mathf.Sin(time * 7f) * 28f);
                     Rot("Head", Vector3.up, Mathf.Sin(time * 3f) * 12f);
                     break;
                 case EnemyKind.Runner:
                     y = Mathf.Abs(Mathf.Sin(time * 11f)) * 0.14f;
-                    Rot("Body", Vector3.right, 12f + Mathf.Sin(time * 11f) * 6f);
+                    lean = 10f + Mathf.Sin(time * 11f) * 5f;
                     Rot("Wheel", Vector3.right, time * 720f);
                     break;
                 case EnemyKind.Armored:
-                    Rot("Body", Vector3.forward, Mathf.Sin(time * 4f) * 3f);
+                    roll = Mathf.Sin(time * 4f) * 2.5f;
                     Rot("Shield", Vector3.right, Mathf.Sin(time * 4f) * 4f);
                     break;
                 case EnemyKind.Flyer:
                     y = Mathf.Sin(time * 3f) * 0.15f;
-                    Rot("Body", Vector3.right, 10f);
+                    lean = 10f;
                     for (int i = 1; i <= 4; i++) Rot("Rotor" + i, Vector3.up, time * 1400f + i * 40f);
                     break;
                 case EnemyKind.Boss:
-                    Rot("Body", Vector3.forward, Mathf.Sin(time * 9f) * 1.2f);
+                    roll = Mathf.Sin(time * 9f) * 1.2f;
                     Rot("Cannon", Vector3.right, Mathf.Sin(time * 2f) * 6f);
                     for (int i = 1; i <= 4; i++) Rot("Wheel" + i, Vector3.right, time * 200f);
                     break;
             }
+            Tilt(0f, lean, roll);
             Offset(y, squash);
         }
     }

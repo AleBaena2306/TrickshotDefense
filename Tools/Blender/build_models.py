@@ -1,7 +1,10 @@
 # Trickshot Defense · modelos low poly generados por script (Blender 5.x como módulo: pip install bpy).
 # Uso:  python build_models.py <carpeta_fbx> [<carpeta_previews> [<carpeta_retratos_ui>]]
 # Genera un FBX por modelo, hecho de PIEZAS RÍGIDAS con el origen en su articulación (Head, Torso, ArmL, ArmR,
-# LegL, LegR, Item...). El juego las anima por código (TrickshotDefense.Rig), así que no hay esqueleto ni clips.
+# LegL, LegR...). El juego las anima por código (TrickshotDefense.Rig), así que no hay esqueleto ni clips.
+# Todas las piezas cuelgan DIRECTAMENTE de la raíz: con bake_space_transform, el exportador FBX coloca mal las
+# piezas de segundo nivel (salen giradas 90° y desplazadas). El objeto de la mano va dentro de la pieza ArmR.
+# Comprobación: Tools/Blender/roundtrip.py reimporta un FBX e imprime dónde queda cada pieza.
 # Convenciones: 1 unidad = 1 m; los personajes miran hacia -Y en Blender (= +Z en Unity); Z arriba.
 # Materiales con nombre: «Skin» (igual en todos los deportistas), «Kit» (la prenda: el juego la tiñe con la
 # equipación elegida), y el resto con su color final.
@@ -174,12 +177,12 @@ def athlete(sport):
         head_objs.append(cyl((0, 0, 1.80), (0, 0, 1.90), 0.305, 0.285, "Kit", 12))
     head = part("Head", head_objs, (0, 0, 1.40))
 
-    def arm(side, name):
+    def arm(side, name, extra=()):
         sx = 0.345 * side
         hx = 0.44 * side
         objs = [sph((sx, 0, SHOULDER_Z), 0.095, "Skin", 1),
                 cyl((sx, 0, SHOULDER_Z), (hx, 0, HAND_Z), 0.078, 0.066, "Skin"),
-                sph((hx, 0, HAND_Z - 0.03), 0.098, "Skin", 1)]
+                sph((hx, 0, HAND_Z - 0.03), 0.098, "Skin", 1)] + list(extra)
         return part(name, objs, (sx, 0, SHOULDER_Z))
 
     def leg(side, name):
@@ -193,29 +196,29 @@ def athlete(sport):
             objs.append(box((x, -0.19, 0.07), (0.205, 0.10, 0.155), "White"))
         return part(name, objs, (x, 0, HIP_Z))
 
-    arm_l, arm_r = arm(L, "ArmL"), arm(R, "ArmR")
-    leg_l, leg_r = leg(L, "LegL"), leg(R, "LegR")
-    for p in (torso, leg_l, leg_r): child(p, rt)
-    for p in (head, arm_l, arm_r): child(p, torso)
-
+    # El objeto de la mano forma parte de la pieza ArmR (así se mueve con el brazo).
+    # IMPORTANTE: todas las piezas cuelgan directamente de la raíz. Con bake_space_transform, el exportador FBX
+    # coloca mal los nietos (salen girados 90° y desplazados), comprobado reimportando el FBX.
     hand = Vector((0.44 * R, 0, HAND_Z - 0.03))
-    item = None
+    item = []
     if sport == "tennis":
         a = hand + Vector((0, -0.02, 0)); b = hand + Vector((0, -0.24, 0.20))
         c = b + (b - a).normalized() * 0.20
-        item = part("Item", [cyl(a, b, 0.028, 0.024, "Black"),
-                             torus(c, 0.19, 0.024, "Kit", (1, 0, 0), 12),
-                             cyl(c - Vector((0.008, 0, 0)), c + Vector((0.008, 0, 0)), 0.18, 0.18, "Strings", 12)], hand)
+        item = [cyl(a, b, 0.028, 0.024, "Black"),
+                torus(c, 0.19, 0.024, "Kit", (1, 0, 0), 12),
+                cyl(c - Vector((0.008, 0, 0)), c + Vector((0.008, 0, 0)), 0.18, 0.18, "Strings", 12)]
     elif sport == "pingpong":
         a = hand + Vector((0, -0.02, 0)); b = hand + Vector((0, -0.13, 0.10))
         c = b + (b - a).normalized() * 0.13
-        item = part("Item", [cyl(a, b, 0.03, 0.03, "Wood"),
-                             cyl(c - Vector((0.02, 0, 0)), c + Vector((0.02, 0, 0)), 0.15, 0.15, "Rubber", 12)], hand)
+        item = [cyl(a, b, 0.03, 0.03, "Wood"),
+                cyl(c - Vector((0.02, 0, 0)), c + Vector((0.02, 0, 0)), 0.15, 0.15, "Rubber", 12)]
     elif sport == "basket":
-        item = part("Item", [sph(hand + Vector((0.02, -0.17, 0.02)), 0.17, "BallBasket", 2)], hand)
+        item = [sph(hand + Vector((0.02, -0.17, 0.02)), 0.17, "BallBasket", 2)]
     elif sport == "bowling":
-        item = part("Item", [sph(hand + Vector((0, -0.03, -0.17)), 0.165, "BallBowling", 2)], hand)
-    if item: child(item, arm_r)
+        item = [sph(hand + Vector((0, -0.03, -0.17)), 0.165, "BallBowling", 2)]
+    arm_l, arm_r = arm(L, "ArmL"), arm(R, "ArmR", item)
+    leg_l, leg_r = leg(L, "LegL"), leg(R, "LegR")
+    for p in (torso, head, arm_l, arm_r, leg_l, leg_r): child(p, rt)
     if sport == "soccer":   # el balón, a los pies
         ball = part("Ball", [soccer_ball((0.135 * R, -0.36, 0.13), 0.13)], (0.135 * R, -0.36, 0.13))
         child(ball, rt)
@@ -252,7 +255,7 @@ def robot_basic():
         return part(name, [cyl((x, 0, 0.92), (x * 1.25, -0.05, 0.50), 0.06, 0.05, "SteelDark"),
                            sph((x * 1.25, -0.05, 0.46), 0.085, "Steel", 1)], (x, 0, 0.92))
     al, ar = arm(L, "ArmL"), arm(R, "ArmR")
-    child(body, rt); child(head, body); child(al, body); child(ar, body)
+    child(body, rt); child(head, rt); child(al, rt); child(ar, rt)
     export("robot_basic")
 
 def robot_runner():
@@ -276,7 +279,7 @@ def robot_armored():
                              box((0, -0.42, 0.86), (0.70, 0.03, 0.10), "Warn"),
                              box((0, -0.42, 0.56), (0.70, 0.03, 0.10), "Warn"),
                              box((0, -0.28, 0.68), (0.12, 0.16, 0.12), "SteelDark")], (0, -0.30, 0.68))
-    child(body, rt); child(shield, body)
+    child(body, rt); child(shield, rt)
     export("robot_armored")
 
 def robot_flyer():
@@ -290,7 +293,7 @@ def robot_flyer():
     for i, (x, y) in enumerate(((0.46, 0), (-0.46, 0), (0, 0.46), (0, -0.46))):
         rotor = part("Rotor%d" % (i + 1), [cyl((x, y, 0.05), (x, y, 0.075), 0.20, 0.20, "Warn", 8),
                                            cyl((x, y, 0.0), (x, y, 0.06), 0.03, 0.03, "SteelDark", 6)], (x, y, 0.05))
-        child(rotor, body)
+        child(rotor, rt)
     export("robot_flyer")
 
 def robot_boss():
@@ -302,7 +305,7 @@ def robot_boss():
                          sph((0, 0.25, 1.95), 0.42, "Steel", 2, (1, 1, 0.75))], (0, 0, 0))
     cannon = part("Cannon", [cyl((0, -0.55, 0.98), (0, -1.45, 1.10), 0.26, 0.32, "Steel", 10),
                              cyl((0, -1.45, 1.10), (0, -1.50, 1.105), 0.24, 0.24, "Black", 10)], (0, -0.55, 0.98))
-    child(body, rt); child(cannon, body)
+    child(body, rt); child(cannon, rt)
     for i, (x, y) in enumerate(((0.92, -0.45), (-0.92, -0.45), (0.92, 0.65), (-0.92, 0.65))):
         w = part("Wheel%d" % (i + 1), [cyl((x - 0.11, y, 0.36), (x + 0.11, y, 0.36), 0.36, 0.36, "Tyre", 12),
                                        cyl((x - 0.12, y, 0.36), (x + 0.12, y, 0.36), 0.14, 0.14, "Warn", 8)], (x, y, 0.36))
