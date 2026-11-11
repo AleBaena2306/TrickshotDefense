@@ -205,9 +205,11 @@ namespace TrickshotDefense
                 Ui.LabelIn(card.transform, def.displayName, 36, unlocked ? Ui.White : Ui.Soft, 0.5f, 0f, new Vector2(w - 20, 40), new Vector2(0, 62), true);
                 if (unlocked)
                 {
-                    var price = Ui.LabelIn(card.transform, def.cost.ToString(), 40, afford ? Ui.Gold : Ui.Red, 0.5f, 0f, new Vector2(150, 46), new Vector2(18, 12), true, TextAlignmentOptions.Left);
+                    // Moneda a la izquierda del centro y precio a su derecha (sin solaparse)
                     var ic = Ui.Icon("coin", card.transform, 38, Ui.Gold);
-                    Ui.Place(ic.rectTransform, 0.5f, 0f, new Vector2(38, 38), new Vector2(-48, 16));
+                    Ui.PlaceP(ic.rectTransform, 0.5f, 0f, 1f, 0f, new Vector2(38, 38), new Vector2(-8, 18));
+                    var price = Ui.Label(card.transform, def.cost.ToString(), 40, afford ? Ui.Gold : Ui.Red, true, TextAlignmentOptions.Left);
+                    Ui.PlaceP(price.rectTransform, 0.5f, 0f, 0f, 0f, new Vector2(120, 46), new Vector2(4, 12));
                     var key = Ui.LabelIn(card.transform, (i + 1).ToString(), 28, Ui.Soft, 1f, 1f, new Vector2(40, 40), new Vector2(-10, -16), true);
                     key.alpha = 0.7f;
                     var btn = card.gameObject.AddComponent<UiButton>();
@@ -219,9 +221,10 @@ namespace TrickshotDefense
                 }
                 else
                 {
-                    var lockIc = Ui.Icon("lock", card.transform, 40, Ui.Soft);
-                    Ui.Place(lockIc.rectTransform, 0.5f, 0f, new Vector2(40, 40), new Vector2(-50, 16));
-                    Ui.LabelIn(card.transform, def.unlockTrophies.ToString(), 36, Ui.Soft, 0.5f, 0f, new Vector2(150, 46), new Vector2(22, 12), true, TextAlignmentOptions.Left);
+                    var lockIc = Ui.Icon("lock", card.transform, 38, Ui.Soft);
+                    Ui.PlaceP(lockIc.rectTransform, 0.5f, 0f, 1f, 0f, new Vector2(38, 38), new Vector2(-8, 18));
+                    var need = Ui.Label(card.transform, def.unlockTrophies.ToString(), 36, Ui.Soft, true, TextAlignmentOptions.Left);
+                    Ui.PlaceP(need.rectTransform, 0.5f, 0f, 0f, 0f, new Vector2(120, 46), new Vector2(4, 12));
                 }
                 Fx.Pop(card.transform, 0.22f, i * 0.03f);
             }
