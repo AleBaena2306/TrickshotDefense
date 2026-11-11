@@ -1,0 +1,16 @@
+{
+    "gameName": "Trickshot Defense",
+    "gameDistributionGameId": "",
+    "itchTarget": "",
+    "butlerPath": "",
+    "interstitialMinSeconds": 180.0,
+    "storageKeys": [
+        "trickshot.save.v1"
+    ],
+    "playgamaApplicationId": "",
+    "playgamaPublicToken": "",
+    "playgamaLeaderboards": [
+        "best"
+    ],
+    "playgamaMultiplayer": false
+}

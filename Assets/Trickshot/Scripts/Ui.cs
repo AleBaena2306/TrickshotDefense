@@ -218,7 +218,7 @@ namespace TrickshotDefense
 
         // Texto centrado con tamaño automático acotado: nunca se sale de su caja
         public static TextMeshProUGUI Label(Transform parent, string text, float size, Color color, bool title = false,
-            TextAlignmentOptions align = TextAlignmentOptions.Center)
+            TextAlignmentOptions align = TextAlignmentOptions.Center, bool wrap = false)
         {
             var rt = Rect("Label", parent);
             var t = rt.gameObject.AddComponent<TextMeshProUGUI>();
